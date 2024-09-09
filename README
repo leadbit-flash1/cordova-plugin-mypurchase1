@@ -1,0 +1,70 @@
+# Cordova In-App Purchase Plugin
+
+A Cordova plugin for handling in-app purchases on Android.
+
+For everyone struggling billing 6.0.1 not supported in cordova-plugin-purchase plugin and needs simple functionality as this.
+
+## Installation
+
+cordova plugin add https://github.com/leadbit-flash1/cordova-plugin-mypurchase1.git
+
+Usage
+
+Initialize the Plugin
+
+Before making any purchases, you need to initialize the plugin:
+
+MYPURCHASE1.initialize(
+    function(success) {
+        console.log('Initialized successfully');
+    },
+    function(error) {
+        console.log('Initialization failed: ' + error);
+    }
+);
+
+Make a Purchase
+
+To initiate a purchase:
+
+let productId = 'product1'; // Replace with your actual product ID
+
+MYPURCHASE1.purchase(productId,
+    function(success) {
+        console.log('Purchase successful');
+        // Handle successful purchase
+    },
+    function(error) {
+        console.log('Purchase failed: ' + error);
+        // Handle purchase failure
+    },
+    function() {
+        console.log('Purchase cancelled');
+        // Handle purchase cancellation
+    }
+);
+
+API Reference
+
+MYPURCHASE1.initialize(successCallback, errorCallback)
+Initializes the in-app purchase plugin.
+
+successCallback: Function called on successful initialization
+errorCallback: Function called if initialization fails
+
+MYPURCHASE1.purchase(productId, successCallback, errorCallback, cancelCallback)
+Initiates a purchase for the specified product.
+
+productId: String identifier for the product to purchase
+successCallback: Function called on successful purchase
+errorCallback: Function called if the purchase fails
+cancelCallback: Function called if the purchase is cancelled
+
+Supported Platforms
+Android
+
+License
+This project is licensed under the MIT License.
+
+Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.

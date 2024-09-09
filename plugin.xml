@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        id="cordova-plugin-mypurchase1"
+        version="1.0.0">
+
+    <name>My In-App Purchase Plugin</name>
+    <description>Cordova In-App Purchase Plugin</description>
+    <license>MIT</license>
+    <keywords>cordova,purchase,in-app,billing,google play</keywords>
+
+    <js-module src="www/inAppPurchase.js" name="InAppPurchase">
+        <clobbers target="MYPURCHASE1" />
+    </js-module>
+
+    <!-- Android -->
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="_MYPURCHASE1">
+                <param name="android-package" value="com.acrobaticgames.mypurchase1.InAppPurchasePlugin"/>
+            </feature>
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="com.android.vending.BILLING" />
+        </config-file>
+
+        <source-file src="src/android/InAppPurchasePlugin.java" target-dir="src/com/acrobaticgames/mypurchase1" />
+
+        <framework src="com.android.billingclient:billing:6.0.1" />
+    </platform>
+
+    <!-- iOS (if you plan to support iOS in the future) -->
+    <platform name="ios">
+        <!-- iOS specific configurations would go here -->
+    </platform>
+
+</plugin>

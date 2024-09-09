@@ -1,0 +1,28 @@
+{
+  "name": "cordova-plugin-mypurchase1",
+  "version": "1.0.0",
+  "description": "Cordova In-App Purchase Plugin",
+  "cordova": {
+    "id": "cordova-plugin-mypurchase1",
+    "platforms": [
+      "android"
+    ]
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova",
+    "purchase",
+    "in-app",
+    "billing",
+    "google play"
+  ],
+  "engines": {
+    "cordovaDependencies": {
+      "1.0.0": {
+        "cordova": ">=9.0.0",
+        "cordova-android": ">=9.0.0"
+      }
+    }
+  }
+}
