@@ -36,7 +36,7 @@ public class InAppPurchasePlugin extends CordovaPlugin {
             return true;
         } else if (action.equals("close")) {
             Log.d(TAG, "Closing all purchase dialogs");
-			closePurchaseDialogs();
+            closePurchaseDialogs();
             return true;
         }
 
@@ -44,13 +44,19 @@ public class InAppPurchasePlugin extends CordovaPlugin {
         callbackContext.error("Invalid action");
         return false;
     }
-	
-	private void closePurchaseDialogs()
-	{
-	}
-	
+
+    private void closePurchaseDialogs() {
+        // Close any open purchase dialogs if needed
+    }
+
     private void initialize() {
         Log.d(TAG, "Starting billing client initialization");
+        
+        // For Billing 7.0.0, enablePendingPurchases requires PendingPurchasesParams
+        PendingPurchasesParams pendingPurchasesParams = PendingPurchasesParams.newBuilder()
+                .enableOneTimeProducts()
+                .build();
+        
         billingClient = BillingClient.newBuilder(cordova.getActivity())
                 .setListener(new PurchasesUpdatedListener() {
                     @Override
@@ -69,7 +75,7 @@ public class InAppPurchasePlugin extends CordovaPlugin {
                         }
                     }
                 })
-                .enablePendingPurchases()
+                .enablePendingPurchases(pendingPurchasesParams)  // Updated for 7.0.0
                 .build();
 
         billingClient.startConnection(new BillingClientStateListener() {
@@ -95,9 +101,9 @@ public class InAppPurchasePlugin extends CordovaPlugin {
 
     private void purchase(String productId) {
         Log.d(TAG, "Starting purchase process for: " + productId);
-		
-		closePurchaseDialogs();
-        
+
+        closePurchaseDialogs();
+
         billingClient.queryPurchasesAsync(
             QueryPurchasesParams.newBuilder()
                 .setProductType(BillingClient.ProductType.INAPP)
@@ -123,17 +129,16 @@ public class InAppPurchasePlugin extends CordovaPlugin {
     }
 
     private void initiateNewPurchase(String productId) {
-        List<String> productList = new ArrayList<>();
-        productList.add(productId);
+        List<QueryProductDetailsParams.Product> productList = new ArrayList<>();
+        productList.add(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(productId)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+        );
+
         QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder()
-                .setProductList(
-                        productList.stream()
-                                .map(product -> QueryProductDetailsParams.Product.newBuilder()
-                                        .setProductId(product)
-                                        .setProductType(BillingClient.ProductType.INAPP)
-                                        .build())
-                                .collect(Collectors.toList())
-                )
+                .setProductList(productList)
                 .build();
 
         billingClient.queryProductDetailsAsync(
@@ -141,18 +146,21 @@ public class InAppPurchasePlugin extends CordovaPlugin {
                 new ProductDetailsResponseListener() {
                     public void onProductDetailsResponse(BillingResult billingResult, List<ProductDetails> productDetailsList) {
                         Log.d(TAG, "onProductDetailsResponse: " + billingResult.getResponseCode());
-                        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && productDetailsList != null) {
+                        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && productDetailsList != null && !productDetailsList.isEmpty()) {
                             for (ProductDetails productDetails : productDetailsList) {
                                 Log.d(TAG, "Launching billing flow for: " + productDetails.getProductId());
-                                List<BillingFlowParams.ProductDetailsParams> productDetailsParamsList =
-                                        List.of(
-                                                BillingFlowParams.ProductDetailsParams.newBuilder()
-                                                        .setProductDetails(productDetails)
-                                                        .build()
-                                        );
+                                
+                                List<BillingFlowParams.ProductDetailsParams> productDetailsParamsList = new ArrayList<>();
+                                productDetailsParamsList.add(
+                                    BillingFlowParams.ProductDetailsParams.newBuilder()
+                                        .setProductDetails(productDetails)
+                                        .build()
+                                );
+
                                 BillingFlowParams flowParams = BillingFlowParams.newBuilder()
                                         .setProductDetailsParamsList(productDetailsParamsList)
                                         .build();
+
                                 BillingResult result = billingClient.launchBillingFlow(cordova.getActivity(), flowParams);
                                 Log.d(TAG, "Billing flow launch result: " + result.getResponseCode());
                             }
@@ -188,7 +196,7 @@ public class InAppPurchasePlugin extends CordovaPlugin {
         Log.d(TAG, "Handling purchase: " + purchase.getProducts().get(0));
         if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
             Log.d(TAG, "Purchase successful: " + purchase.getProducts().get(0));
-            
+
             // Consume the purchase immediately for consumable products
             consumePurchase(purchase, () -> {
                 Log.d(TAG, "Purchase consumed successfully");
@@ -202,8 +210,7 @@ public class InAppPurchasePlugin extends CordovaPlugin {
             callbackContext.error("PURCHASE_FAILED");
         }
     }
-	
-	// Add this method to handle activity destruction
+
     @Override
     public void onDestroy() {
         if (billingClient != null) {
